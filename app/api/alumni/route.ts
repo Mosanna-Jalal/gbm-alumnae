@@ -1,5 +1,6 @@
 import { AlumniSubmission, type AlumniSubmissionInput } from "@/app/lib/alumni";
 import { getMongoConnection } from "@/app/lib/db";
+import crypto from "crypto";
 
 export const runtime = "nodejs";
 
@@ -26,7 +27,39 @@ function clean(value: FormDataEntryValue | null) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-async function readPhoto(file: FormDataEntryValue | null) {
+function getCloudinaryConfig() {
+  const cloudinaryUrl = process.env.CLOUDINARY_URL;
+
+  if (cloudinaryUrl) {
+    const parsed = new URL(cloudinaryUrl);
+
+    return {
+      cloudName: parsed.hostname,
+      apiKey: decodeURIComponent(parsed.username),
+      apiSecret: decodeURIComponent(parsed.password),
+    };
+  }
+
+  return {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    apiSecret: process.env.CLOUDINARY_API_SECRET,
+  };
+}
+
+function signCloudinaryParams(
+  params: Record<string, string | number>,
+  apiSecret: string,
+) {
+  const payload = Object.keys(params)
+    .sort()
+    .map((key) => `${key}=${params[key]}`)
+    .join("&");
+
+  return crypto.createHash("sha1").update(`${payload}${apiSecret}`).digest("hex");
+}
+
+async function uploadPhoto(file: FormDataEntryValue | null) {
   if (!(file instanceof File) || file.size === 0) {
     return undefined;
   }
@@ -35,13 +68,43 @@ async function readPhoto(file: FormDataEntryValue | null) {
     throw new Error("Photograph must be smaller than 2 MB.");
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const { cloudName, apiKey, apiSecret } = getCloudinaryConfig();
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    throw new Error("Cloudinary is not configured on the server.");
+  }
+
+  const folder = "gbm-alumni/passport-photos";
+  const timestamp = Math.round(Date.now() / 1000);
+  const signature = signCloudinaryParams({ folder, timestamp }, apiSecret);
+  const uploadForm = new FormData();
+
+  uploadForm.append("file", file);
+  uploadForm.append("folder", folder);
+  uploadForm.append("timestamp", String(timestamp));
+  uploadForm.append("api_key", apiKey);
+  uploadForm.append("signature", signature);
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    {
+      method: "POST",
+      body: uploadForm,
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error?.message || "Cloudinary photo upload failed.");
+  }
 
   return {
     name: file.name,
     type: file.type,
     size: file.size,
-    dataUrl: `data:${file.type};base64,${buffer.toString("base64")}`,
+    url: data.secure_url,
+    publicId: data.public_id,
   };
 }
 
@@ -66,7 +129,7 @@ async function syncGoogleSheet(
       submittedAt: new Date().toISOString(),
       ...payload,
       photo: payload.photo
-        ? `${payload.photo.name} (${Math.round(payload.photo.size / 1024)} KB)`
+        ? payload.photo.url
         : "",
     }),
   });
@@ -94,7 +157,7 @@ export async function POST(request: Request) {
       whatsapp: clean(formData.get("whatsapp")),
       presentAddress: clean(formData.get("presentAddress")),
       achievements: clean(formData.get("achievements")),
-      photo: await readPhoto(formData.get("photo")),
+      photo: await uploadPhoto(formData.get("photo")),
     };
 
     const missing = requiredFields.filter((field) => !payload[field]);

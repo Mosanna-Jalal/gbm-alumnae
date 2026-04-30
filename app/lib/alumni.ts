@@ -5,6 +5,8 @@ const photoSchema = new Schema(
     name: { type: String },
     type: { type: String },
     size: { type: Number },
+    url: { type: String },
+    publicId: { type: String },
     dataUrl: { type: String },
   },
   { _id: false },
@@ -54,7 +56,9 @@ export type AlumniSubmissionInput = {
     name: string;
     type: string;
     size: number;
-    dataUrl: string;
+    url: string;
+    publicId: string;
+    dataUrl?: string;
   };
 };
 

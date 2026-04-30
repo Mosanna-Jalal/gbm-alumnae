@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 type Submission = {
@@ -18,11 +19,18 @@ type Submission = {
   presentAddress: string;
   achievements: string;
   photoName: string;
+  photoPreviewUrl: string;
+  photoUrl: string;
+  photoPublicId: string;
   photoSize: number | string;
   sheetStatus: string;
 };
 
-const columns: Array<{ key: keyof Submission; label: string }> = [
+const columns: Array<{
+  key: keyof Submission;
+  label: string;
+  exportable?: boolean;
+}> = [
   { key: "submittedAt", label: "Submitted At" },
   { key: "name", label: "Name of the Alumna" },
   { key: "dateOfBirth", label: "Date of Birth" },
@@ -36,7 +44,10 @@ const columns: Array<{ key: keyof Submission; label: string }> = [
   { key: "whatsapp", label: "Whatsapp No." },
   { key: "presentAddress", label: "Present Address" },
   { key: "achievements", label: "Achievements/Awards" },
+  { key: "photoPreviewUrl", label: "Photo", exportable: false },
   { key: "photoName", label: "Photograph File" },
+  { key: "photoUrl", label: "Photograph URL" },
+  { key: "photoPublicId", label: "Cloudinary Public ID" },
   { key: "photoSize", label: "Photo Size" },
   { key: "sheetStatus", label: "Sheet Sync" },
 ];
@@ -92,10 +103,11 @@ export function AdminDashboard() {
   }
 
   function downloadCsv() {
+    const exportColumns = columns.filter((column) => column.exportable !== false);
     const rows = [
-      columns.map((column) => column.label),
+      exportColumns.map((column) => column.label),
       ...visibleRows.map((submission) =>
-        columns.map((column) => String(submission[column.key] ?? "")),
+        exportColumns.map((column) => String(submission[column.key] ?? "")),
       ),
     ];
     const csv = rows
@@ -132,6 +144,13 @@ export function AdminDashboard() {
               Excel-openable CSV file.
             </p>
           </div>
+          <div className="flex flex-col gap-3 sm:flex-row lg:items-center">
+            <Link
+              href="/"
+              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/15 px-5 py-2 text-sm font-bold uppercase tracking-[0.08em] text-white transition hover:border-white/30 hover:bg-white/10"
+            >
+              Back to Form
+            </Link>
           {isUnlocked ? (
             <button
               type="button"
@@ -142,6 +161,7 @@ export function AdminDashboard() {
               Download Excel CSV
             </button>
           ) : null}
+          </div>
         </div>
       </header>
 
@@ -186,7 +206,7 @@ export function AdminDashboard() {
             </p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1400px] border-collapse text-left text-sm">
+            <table className="w-full min-w-[1500px] border-collapse text-left text-sm">
               <thead className="bg-white/[0.04] text-xs uppercase tracking-[0.08em] text-zinc-400">
                 <tr>
                   {columns.map((column) => (
@@ -208,7 +228,27 @@ export function AdminDashboard() {
                           key={column.key}
                           className="max-w-[280px] border-b border-r border-white/10 px-3 py-3 align-top text-zinc-200 last:border-r-0"
                         >
-                          {submission[column.key]}
+                          {column.key === "photoPreviewUrl" &&
+                          submission.photoPreviewUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={submission.photoPreviewUrl}
+                              alt={`${submission.name} passport photograph`}
+                              className="h-20 w-16 rounded-md border border-white/10 object-cover"
+                            />
+                          ) : column.key === "photoUrl" &&
+                            submission.photoUrl ? (
+                            <a
+                              href={submission.photoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-amber-200 underline-offset-4 hover:underline"
+                            >
+                              View photo
+                            </a>
+                          ) : (
+                            submission[column.key]
+                          )}
                         </td>
                       ))}
                     </tr>

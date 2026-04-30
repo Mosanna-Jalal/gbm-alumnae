@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const classOptions = [
   "IA",
@@ -25,6 +25,15 @@ export function AlumniForm() {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState("");
+
+  useEffect(() => {
+    return () => {
+      if (photoPreview) {
+        URL.revokeObjectURL(photoPreview);
+      }
+    };
+  }, [photoPreview]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -43,6 +52,7 @@ export function AlumniForm() {
       }
 
       formRef.current?.reset();
+      setPhotoPreview("");
       setStatus({ tone: "success", message: data.message });
     } catch (error) {
       setStatus({
@@ -71,7 +81,7 @@ export function AlumniForm() {
           <select
             name="className"
             required
-            className="h-12 w-full min-w-0 rounded-lg border border-white/10 bg-zinc-950 px-3 text-base text-white outline-none transition focus:border-amber-300 focus:ring-4 focus:ring-amber-300/10 sm:px-4 sm:text-sm"
+            className="h-12 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-base text-slate-950 outline-none transition focus:border-[#b47a23] focus:ring-4 focus:ring-[#b47a23]/15 sm:px-4 sm:text-sm"
           >
             <option value="">Select class</option>
             {classOptions.map((option) => (
@@ -100,27 +110,51 @@ export function AlumniForm() {
       <Textarea label="Present Address" name="presentAddress" required />
       <Textarea label="Achievements/Awards" name="achievements" />
 
-      <label className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3 sm:p-4">
-        <span className="text-sm font-medium text-zinc-300">
-          Passport Size Colour Photograph
-        </span>
-        <input
-          name="photo"
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          className="w-full min-w-0 text-sm text-zinc-300 file:mb-2 file:mr-3 file:rounded-md file:border-0 file:bg-amber-300 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-black hover:file:bg-amber-200 sm:file:mb-0 sm:file:px-4"
-        />
-        <span className="text-xs leading-5 text-zinc-500">
-          JPG, PNG, or WEBP up to 2 MB.
-        </span>
-      </label>
+      <div className="grid gap-3 rounded-lg border border-[#d8c190] bg-[#fff7df]/70 p-3 sm:grid-cols-[1fr_auto] sm:p-4">
+        <label className="grid gap-3">
+          <span className="text-sm font-medium text-slate-700">
+            Photo
+          </span>
+          <input
+            name="photo"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+
+              if (photoPreview) {
+                URL.revokeObjectURL(photoPreview);
+              }
+
+              setPhotoPreview(file ? URL.createObjectURL(file) : "");
+            }}
+            className="w-full min-w-0 text-sm text-slate-700 file:mb-2 file:mr-3 file:rounded-md file:border-0 file:bg-[#29345f] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#1d274e] sm:file:mb-0 sm:file:px-4"
+          />
+          <span className="text-xs leading-5 text-slate-500">
+            JPG, PNG, or WEBP up to 2 MB.
+          </span>
+        </label>
+
+        <div className="grid h-28 w-24 place-items-center overflow-hidden rounded-lg border border-[#d8c190] bg-white text-center text-xs text-slate-400">
+          {photoPreview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photoPreview}
+              alt="Selected passport photograph preview"
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span className="px-3">Photo preview</span>
+          )}
+        </div>
+      </div>
 
       {status.message ? (
         <p
           className={`rounded-lg border px-4 py-3 text-sm ${
             status.tone === "success"
-              ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200"
-              : "border-red-400/30 bg-red-400/10 text-red-200"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : "border-red-200 bg-red-50 text-red-800"
           }`}
         >
           {status.message}
@@ -130,7 +164,7 @@ export function AlumniForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="min-h-12 rounded-lg bg-amber-300 px-4 py-3 text-sm font-bold uppercase tracking-[0.08em] text-black shadow-[0_0_40px_rgba(252,211,77,0.22)] transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-60 sm:h-13 sm:px-6 sm:tracking-[0.18em]"
+        className="min-h-12 rounded-lg bg-[#29345f] px-4 py-3 text-sm font-bold uppercase tracking-[0.08em] text-white shadow-[0_12px_30px_rgba(41,52,95,0.18)] transition hover:bg-[#1d274e] disabled:cursor-not-allowed disabled:opacity-60 sm:h-13 sm:px-6 sm:tracking-[0.18em]"
       >
         {isSubmitting ? "Submitting..." : "Submit Alumni Form"}
       </button>
@@ -153,7 +187,7 @@ function Field({
 }) {
   return (
     <label className="grid gap-2">
-      <span className="text-sm font-medium text-zinc-300">
+      <span className="text-sm font-medium text-slate-700">
         {label} {required ? <Required /> : null}
       </span>
       <input
@@ -161,7 +195,7 @@ function Field({
         type={type}
         placeholder={placeholder}
         required={required}
-        className="h-12 w-full min-w-0 rounded-lg border border-white/10 bg-zinc-950 px-3 text-base text-white outline-none transition placeholder:text-zinc-600 focus:border-amber-300 focus:ring-4 focus:ring-amber-300/10 sm:px-4 sm:text-sm"
+        className="h-12 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-base text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-[#b47a23] focus:ring-4 focus:ring-[#b47a23]/15 sm:px-4 sm:text-sm"
       />
     </label>
   );
@@ -178,19 +212,19 @@ function Textarea({
 }) {
   return (
     <label className="grid gap-2">
-      <span className="text-sm font-medium text-zinc-300">
+      <span className="text-sm font-medium text-slate-700">
         {label} {required ? <Required /> : null}
       </span>
       <textarea
         name={name}
         required={required}
         rows={4}
-        className="min-h-28 w-full min-w-0 resize-y rounded-lg border border-white/10 bg-zinc-950 px-3 py-3 text-base text-white outline-none transition placeholder:text-zinc-600 focus:border-amber-300 focus:ring-4 focus:ring-amber-300/10 sm:px-4 sm:text-sm"
+        className="min-h-28 w-full min-w-0 resize-y rounded-lg border border-slate-200 bg-white px-3 py-3 text-base text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-[#b47a23] focus:ring-4 focus:ring-[#b47a23]/15 sm:px-4 sm:text-sm"
       />
     </label>
   );
 }
 
 function Required() {
-  return <span className="text-amber-300">*</span>;
+  return <span className="text-[#b47a23]">*</span>;
 }
