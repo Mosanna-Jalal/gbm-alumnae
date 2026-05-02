@@ -50,6 +50,30 @@ export async function POST(request: Request) {
         photoUrl: submission.photo?.url || "",
         photoPublicId: submission.photo?.publicId || "",
         photoSize: submission.photo?.size || "",
+        matriculationCertificateName:
+          submission.matriculationCertificate?.name || "",
+        matriculationCertificatePreviewUrl:
+          submission.matriculationCertificate?.url ||
+          submission.matriculationCertificate?.dataUrl ||
+          "",
+        matriculationCertificateUrl:
+          submission.matriculationCertificate?.url || "",
+        matriculationCertificatePublicId:
+          submission.matriculationCertificate?.publicId || "",
+        matriculationCertificateSize:
+          submission.matriculationCertificate?.size || "",
+        collegePassingCertificateName:
+          submission.collegePassingCertificate?.name || "",
+        collegePassingCertificatePreviewUrl:
+          submission.collegePassingCertificate?.url ||
+          submission.collegePassingCertificate?.dataUrl ||
+          "",
+        collegePassingCertificateUrl:
+          submission.collegePassingCertificate?.url || "",
+        collegePassingCertificatePublicId:
+          submission.collegePassingCertificate?.publicId || "",
+        collegePassingCertificateSize:
+          submission.collegePassingCertificate?.size || "",
         sheetStatus: submission.sheetSync?.status || "",
       })),
     });

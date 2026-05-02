@@ -59,13 +59,26 @@ function signCloudinaryParams(
   return crypto.createHash("sha1").update(`${payload}${apiSecret}`).digest("hex");
 }
 
-async function uploadPhoto(file: FormDataEntryValue | null) {
+function hasUpload(file: FormDataEntryValue | null) {
+  return file instanceof File && file.size > 0;
+}
+
+async function uploadPhoto(
+  file: FormDataEntryValue | null,
+  {
+    folder = "gbm-alumni/passport-photos",
+    label = "Photograph",
+  }: {
+    folder?: string;
+    label?: string;
+  } = {},
+) {
   if (!(file instanceof File) || file.size === 0) {
     return undefined;
   }
 
   if (file.size > 2 * 1024 * 1024) {
-    throw new Error("Photograph must be smaller than 2 MB.");
+    throw new Error(`${label} must be smaller than 2 MB.`);
   }
 
   const { cloudName, apiKey, apiSecret } = getCloudinaryConfig();
@@ -74,7 +87,6 @@ async function uploadPhoto(file: FormDataEntryValue | null) {
     throw new Error("Cloudinary is not configured on the server.");
   }
 
-  const folder = "gbm-alumni/passport-photos";
   const timestamp = Math.round(Date.now() / 1000);
   const signature = signCloudinaryParams({ folder, timestamp }, apiSecret);
   const uploadForm = new FormData();
@@ -128,8 +140,12 @@ async function syncGoogleSheet(
       sheetId: process.env.GOOGLE_SHEET_ID,
       submittedAt: new Date().toISOString(),
       ...payload,
-      photo: payload.photo
-        ? payload.photo.url
+      photo: payload.photo ? payload.photo.url : "",
+      matriculationCertificate: payload.matriculationCertificate
+        ? payload.matriculationCertificate.url
+        : "",
+      collegePassingCertificate: payload.collegePassingCertificate
+        ? payload.collegePassingCertificate.url
         : "",
     }),
   });
@@ -144,6 +160,13 @@ async function syncGoogleSheet(
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
+    const photoFile = formData.get("photo");
+    const matriculationCertificateFile = formData.get(
+      "matriculationCertificate",
+    );
+    const collegePassingCertificateFile = formData.get(
+      "collegePassingCertificate",
+    );
     const payload: AlumniSubmissionInput = {
       name: clean(formData.get("name")),
       dateOfBirth: clean(formData.get("dateOfBirth")),
@@ -157,17 +180,39 @@ export async function POST(request: Request) {
       whatsapp: clean(formData.get("whatsapp")),
       presentAddress: clean(formData.get("presentAddress")),
       achievements: clean(formData.get("achievements")),
-      photo: await uploadPhoto(formData.get("photo")),
     };
 
     const missing = requiredFields.filter((field) => !payload[field]);
 
-    if (missing.length > 0) {
+    if (
+      missing.length > 0 ||
+      !hasUpload(photoFile) ||
+      !hasUpload(matriculationCertificateFile) ||
+      !hasUpload(collegePassingCertificateFile)
+    ) {
       return Response.json(
         { ok: false, message: "Please complete all required fields." },
         { status: 400 },
       );
     }
+
+    payload.photo = await uploadPhoto(photoFile, {
+      label: "Passport photograph",
+    });
+    payload.matriculationCertificate = await uploadPhoto(
+      matriculationCertificateFile,
+      {
+        folder: "gbm-alumni/certificates/matriculation",
+        label: "Matriculation certificate",
+      },
+    );
+    payload.collegePassingCertificate = await uploadPhoto(
+      collegePassingCertificateFile,
+      {
+        folder: "gbm-alumni/certificates/college-passing",
+        label: "College passing certificate",
+      },
+    );
 
     await getMongoConnection();
 

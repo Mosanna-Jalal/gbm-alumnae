@@ -23,6 +23,16 @@ type Submission = {
   photoUrl: string;
   photoPublicId: string;
   photoSize: number | string;
+  matriculationCertificateName: string;
+  matriculationCertificatePreviewUrl: string;
+  matriculationCertificateUrl: string;
+  matriculationCertificatePublicId: string;
+  matriculationCertificateSize: number | string;
+  collegePassingCertificateName: string;
+  collegePassingCertificatePreviewUrl: string;
+  collegePassingCertificateUrl: string;
+  collegePassingCertificatePublicId: string;
+  collegePassingCertificateSize: number | string;
   sheetStatus: string;
 };
 
@@ -49,6 +59,48 @@ const columns: Array<{
   { key: "photoUrl", label: "Photograph URL" },
   { key: "photoPublicId", label: "Cloudinary Public ID" },
   { key: "photoSize", label: "Photo Size" },
+  {
+    key: "matriculationCertificatePreviewUrl",
+    label: "Matriculation Certificate",
+    exportable: false,
+  },
+  {
+    key: "matriculationCertificateName",
+    label: "Matriculation Certificate File",
+  },
+  {
+    key: "matriculationCertificateUrl",
+    label: "Matriculation Certificate URL",
+  },
+  {
+    key: "matriculationCertificatePublicId",
+    label: "Matriculation Certificate Public ID",
+  },
+  {
+    key: "matriculationCertificateSize",
+    label: "Matriculation Certificate Size",
+  },
+  {
+    key: "collegePassingCertificatePreviewUrl",
+    label: "College Passing Certificate",
+    exportable: false,
+  },
+  {
+    key: "collegePassingCertificateName",
+    label: "College Passing Certificate File",
+  },
+  {
+    key: "collegePassingCertificateUrl",
+    label: "College Passing Certificate URL",
+  },
+  {
+    key: "collegePassingCertificatePublicId",
+    label: "College Passing Certificate Public ID",
+  },
+  {
+    key: "collegePassingCertificateSize",
+    label: "College Passing Certificate Size",
+  },
   { key: "sheetStatus", label: "Sheet Sync" },
 ];
 
@@ -68,6 +120,12 @@ export function AdminDashboard() {
           : "",
         photoSize: submission.photoSize
           ? `${Math.round(Number(submission.photoSize) / 1024)} KB`
+          : "",
+        matriculationCertificateSize: submission.matriculationCertificateSize
+          ? `${Math.round(Number(submission.matriculationCertificateSize) / 1024)} KB`
+          : "",
+        collegePassingCertificateSize: submission.collegePassingCertificateSize
+          ? `${Math.round(Number(submission.collegePassingCertificateSize) / 1024)} KB`
           : "",
       })),
     [submissions],
@@ -228,23 +286,23 @@ export function AdminDashboard() {
                           key={column.key}
                           className="max-w-[280px] border-b border-r border-white/10 px-3 py-3 align-top text-zinc-200 last:border-r-0"
                         >
-                          {column.key === "photoPreviewUrl" &&
-                          submission.photoPreviewUrl ? (
+                          {isPreviewColumn(column.key) &&
+                          submission[column.key] ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={submission.photoPreviewUrl}
-                              alt={`${submission.name} passport photograph`}
-                              className="h-20 w-16 rounded-md border border-white/10 object-cover"
+                              src={String(submission[column.key])}
+                              alt={`${submission.name} ${column.label.toLowerCase()}`}
+                              className="h-20 w-28 rounded-md border border-white/10 bg-white object-contain"
                             />
-                          ) : column.key === "photoUrl" &&
-                            submission.photoUrl ? (
+                          ) : isUrlColumn(column.key) &&
+                            submission[column.key] ? (
                             <a
-                              href={submission.photoUrl}
+                              href={String(submission[column.key])}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-amber-200 underline-offset-4 hover:underline"
                             >
-                              View photo
+                              View file
                             </a>
                           ) : (
                             submission[column.key]
@@ -269,5 +327,21 @@ export function AdminDashboard() {
         </section>
       ) : null}
     </div>
+  );
+}
+
+function isPreviewColumn(key: keyof Submission) {
+  return (
+    key === "photoPreviewUrl" ||
+    key === "matriculationCertificatePreviewUrl" ||
+    key === "collegePassingCertificatePreviewUrl"
+  );
+}
+
+function isUrlColumn(key: keyof Submission) {
+  return (
+    key === "photoUrl" ||
+    key === "matriculationCertificateUrl" ||
+    key === "collegePassingCertificateUrl"
   );
 }

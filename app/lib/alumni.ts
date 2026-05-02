@@ -27,6 +27,8 @@ const submissionSchema = new Schema(
     presentAddress: { type: String, required: true, trim: true },
     achievements: { type: String, trim: true },
     photo: photoSchema,
+    matriculationCertificate: photoSchema,
+    collegePassingCertificate: photoSchema,
     sheetSync: {
       status: {
         type: String,
@@ -53,6 +55,22 @@ export type AlumniSubmissionInput = {
   presentAddress: string;
   achievements: string;
   photo?: {
+    name: string;
+    type: string;
+    size: number;
+    url: string;
+    publicId: string;
+    dataUrl?: string;
+  };
+  matriculationCertificate?: {
+    name: string;
+    type: string;
+    size: number;
+    url: string;
+    publicId: string;
+    dataUrl?: string;
+  };
+  collegePassingCertificate?: {
     name: string;
     type: string;
     size: number;

@@ -18,6 +18,11 @@ type Status = {
   message: string;
 };
 
+type FilePreviewKey =
+  | "photo"
+  | "matriculationCertificate"
+  | "collegePassingCertificate";
+
 export function AlumniForm({
   whatsappGroupLink,
 }: {
@@ -29,15 +34,43 @@ export function AlumniForm({
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState("");
+  const [filePreviews, setFilePreviews] = useState<Record<FilePreviewKey, string>>({
+    photo: "",
+    matriculationCertificate: "",
+    collegePassingCertificate: "",
+  });
+  const filePreviewsRef = useRef(filePreviews);
 
   useEffect(() => {
     return () => {
-      if (photoPreview) {
-        URL.revokeObjectURL(photoPreview);
-      }
+      Object.values(filePreviewsRef.current).forEach((previewUrl) => {
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+        }
+      });
     };
-  }, [photoPreview]);
+  }, []);
+
+  function handleFilePreview(
+    key: FilePreviewKey,
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0];
+
+    setFilePreviews((current) => {
+      if (current[key]) {
+        URL.revokeObjectURL(current[key]);
+      }
+
+      const next = {
+        ...current,
+        [key]: file ? URL.createObjectURL(file) : "",
+      };
+      filePreviewsRef.current = next;
+
+      return next;
+    });
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -56,7 +89,22 @@ export function AlumniForm({
       }
 
       formRef.current?.reset();
-      setPhotoPreview("");
+      setFilePreviews((current) => {
+        Object.values(current).forEach((previewUrl) => {
+          if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+          }
+        });
+
+        const next = {
+          photo: "",
+          matriculationCertificate: "",
+          collegePassingCertificate: "",
+        };
+        filePreviewsRef.current = next;
+
+        return next;
+      });
       setStatus({ tone: "success", message: data.message });
     } catch (error) {
       setStatus({
@@ -114,42 +162,44 @@ export function AlumniForm({
       <Textarea label="Present Address" name="presentAddress" required />
       <Textarea label="Achievements/Awards" name="achievements" />
 
-      <div className="grid gap-3 rounded-lg border border-[#d8c190] bg-[#fff7df]/70 p-3 sm:grid-cols-[1fr_auto] sm:p-4">
-        <label className="grid gap-3">
-          <span className="text-sm font-medium text-slate-700">
-            Photo
-          </span>
-          <input
+      <div className="grid gap-3 rounded-lg border border-[#d8c190] bg-[#fff7df]/70 p-3 sm:p-4">
+        <div>
+          <p className="text-sm font-semibold text-slate-800">
+            Required Uploads
+          </p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            Upload clear JPG, PNG, or WEBP images. Each file must be up to 2 MB.
+          </p>
+        </div>
+        <div className="grid gap-3 lg:grid-cols-3">
+          <FileUpload
+            label="Passport Photo"
             name="photo"
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-
-              if (photoPreview) {
-                URL.revokeObjectURL(photoPreview);
-              }
-
-              setPhotoPreview(file ? URL.createObjectURL(file) : "");
-            }}
-            className="w-full min-w-0 text-sm text-slate-700 file:mb-2 file:mr-3 file:rounded-md file:border-0 file:bg-[#29345f] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#1d274e] sm:file:mb-0 sm:file:px-4"
+            previewUrl={filePreviews.photo}
+            previewAlt="Selected passport photograph preview"
+            onChange={(event) => handleFilePreview("photo", event)}
+            required
           />
-          <span className="text-xs leading-5 text-slate-500">
-            JPG, PNG, or WEBP up to 2 MB.
-          </span>
-        </label>
-
-        <div className="grid h-28 w-24 place-items-center overflow-hidden rounded-lg border border-[#d8c190] bg-white text-center text-xs text-slate-400">
-          {photoPreview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={photoPreview}
-              alt="Selected passport photograph preview"
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <span className="px-3">Photo preview</span>
-          )}
+          <FileUpload
+            label="Matriculation Certificate"
+            name="matriculationCertificate"
+            previewUrl={filePreviews.matriculationCertificate}
+            previewAlt="Selected matriculation certificate preview"
+            onChange={(event) =>
+              handleFilePreview("matriculationCertificate", event)
+            }
+            required
+          />
+          <FileUpload
+            label="College Passing Certificate"
+            name="collegePassingCertificate"
+            previewUrl={filePreviews.collegePassingCertificate}
+            previewAlt="Selected college passing certificate preview"
+            onChange={(event) =>
+              handleFilePreview("collegePassingCertificate", event)
+            }
+            required
+          />
         </div>
       </div>
 
@@ -255,6 +305,53 @@ function Textarea({
         className="min-h-28 w-full min-w-0 resize-y rounded-lg border border-slate-200 bg-white px-3 py-3 text-base text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-[#b47a23] focus:ring-4 focus:ring-[#b47a23]/15 sm:px-4 sm:text-sm"
       />
     </label>
+  );
+}
+
+function FileUpload({
+  label,
+  name,
+  previewUrl,
+  previewAlt,
+  onChange,
+  required = false,
+}: {
+  label: string;
+  name: string;
+  previewUrl: string;
+  previewAlt: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  required?: boolean;
+}) {
+  return (
+    <div className="grid gap-3 rounded-lg border border-[#d8c190] bg-white/70 p-3">
+      <label className="grid gap-3">
+        <span className="text-sm font-medium text-slate-700">
+          {label} {required ? <Required /> : null}
+        </span>
+        <input
+          name={name}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          required={required}
+          onChange={onChange}
+          className="w-full min-w-0 text-sm text-slate-700 file:mb-2 file:mr-3 file:rounded-md file:border-0 file:bg-[#29345f] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#1d274e] sm:file:mb-0 sm:file:px-4"
+        />
+      </label>
+
+      <div className="grid h-32 w-full place-items-center overflow-hidden rounded-lg border border-[#d8c190] bg-white text-center text-xs text-slate-400">
+        {previewUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={previewUrl}
+            alt={previewAlt}
+            className="h-full w-full object-contain"
+          />
+        ) : (
+          <span className="px-3">Preview</span>
+        )}
+      </div>
+    </div>
   );
 }
 
