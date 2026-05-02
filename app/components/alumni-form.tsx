@@ -75,7 +75,7 @@ export function AlumniForm() {
         <Field label="Mother's Name" name="motherName" required />
         <Field label="Father's Name" name="fatherName" required />
         <label className="group grid gap-2">
-          <span className="text-sm font-medium text-zinc-300">
+          <span className="text-sm font-medium text-slate-700">
             Class <Required />
           </span>
           <select
