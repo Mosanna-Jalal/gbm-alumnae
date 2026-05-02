@@ -55,30 +55,15 @@ const columns: Array<{
   { key: "presentAddress", label: "Present Address" },
   { key: "achievements", label: "Achievements/Awards" },
   { key: "photoPreviewUrl", label: "Photo", exportable: false },
-  { key: "photoName", label: "Photograph File" },
   { key: "photoUrl", label: "Photograph URL" },
-  { key: "photoPublicId", label: "Cloudinary Public ID" },
-  { key: "photoSize", label: "Photo Size" },
   {
     key: "matriculationCertificatePreviewUrl",
     label: "Matriculation Certificate",
     exportable: false,
   },
   {
-    key: "matriculationCertificateName",
-    label: "Matriculation Certificate File",
-  },
-  {
     key: "matriculationCertificateUrl",
     label: "Matriculation Certificate URL",
-  },
-  {
-    key: "matriculationCertificatePublicId",
-    label: "Matriculation Certificate Public ID",
-  },
-  {
-    key: "matriculationCertificateSize",
-    label: "Matriculation Certificate Size",
   },
   {
     key: "collegePassingCertificatePreviewUrl",
@@ -86,22 +71,9 @@ const columns: Array<{
     exportable: false,
   },
   {
-    key: "collegePassingCertificateName",
-    label: "College Passing Certificate File",
-  },
-  {
     key: "collegePassingCertificateUrl",
     label: "College Passing Certificate URL",
   },
-  {
-    key: "collegePassingCertificatePublicId",
-    label: "College Passing Certificate Public ID",
-  },
-  {
-    key: "collegePassingCertificateSize",
-    label: "College Passing Certificate Size",
-  },
-  { key: "sheetStatus", label: "Sheet Sync" },
 ];
 
 export function AdminDashboard() {
