@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Submission = {
   id: string;
@@ -76,12 +76,25 @@ const columns: Array<{
   },
 ];
 
+const CACHE_KEY = "admin_pwd";
+const CACHE_EXPIRY_KEY = "admin_pwd_exp";
+const CACHE_DURATION = 12 * 60 * 60 * 1000;
+
 export function AdminDashboard() {
   const [password, setPassword] = useState("");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
+
+  useEffect(() => {
+    const expiry = localStorage.getItem(CACHE_EXPIRY_KEY);
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached && expiry && Date.now() < Number(expiry)) {
+      setPassword(cached);
+      loadSubmissions(undefined, cached);
+    }
+  }, []);
 
   const visibleRows = useMemo(
     () =>
@@ -103,16 +116,17 @@ export function AdminDashboard() {
     [submissions],
   );
 
-  async function loadSubmissions(event?: React.FormEvent<HTMLFormElement>) {
+  async function loadSubmissions(event?: React.FormEvent<HTMLFormElement>, overridePassword?: string) {
     event?.preventDefault();
     setIsLoading(true);
     setMessage("");
+    const pwd = overridePassword ?? password;
 
     try {
       const response = await fetch("/api/admin/submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password: pwd }),
       });
       const data = await response.json();
 
@@ -122,6 +136,8 @@ export function AdminDashboard() {
 
       setSubmissions(data.submissions);
       setIsUnlocked(true);
+      localStorage.setItem(CACHE_KEY, pwd);
+      localStorage.setItem(CACHE_EXPIRY_KEY, String(Date.now() + CACHE_DURATION));
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "Unable to load submissions.",
