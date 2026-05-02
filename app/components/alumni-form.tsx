@@ -18,7 +18,11 @@ type Status = {
   message: string;
 };
 
-export function AlumniForm() {
+export function AlumniForm({
+  whatsappGroupLink,
+}: {
+  whatsappGroupLink?: string;
+}) {
   const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<Status>({
     tone: "idle",
@@ -150,15 +154,44 @@ export function AlumniForm() {
       </div>
 
       {status.message ? (
-        <p
-          className={`rounded-lg border px-4 py-3 text-sm ${
-            status.tone === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-              : "border-red-200 bg-red-50 text-red-800"
-          }`}
-        >
-          {status.message}
-        </p>
+        status.tone === "success" ? (
+          <div className="overflow-hidden rounded-lg border border-emerald-200 bg-white shadow-xl shadow-emerald-950/10">
+            <div className="grid gap-4 bg-gradient-to-br from-emerald-50 via-white to-[#fff7df] p-4 sm:grid-cols-[1fr_auto] sm:items-center sm:p-5">
+              <div>
+                <div className="mb-3 inline-flex min-h-9 items-center rounded-md bg-emerald-100 px-3 text-xs font-bold uppercase tracking-[0.12em] text-emerald-800">
+                  Registration Submitted
+                </div>
+                <p className="text-sm leading-6 text-emerald-900">
+                  {status.message}
+                </p>
+                {whatsappGroupLink ? (
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Join the official WhatsApp group to receive alumni updates,
+                    notices, and association announcements.
+                  </p>
+                ) : null}
+              </div>
+
+              {whatsappGroupLink ? (
+                <a
+                  href={whatsappGroupLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex min-h-12 items-center justify-center gap-3 rounded-lg bg-emerald-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-900/20 transition hover:-translate-y-0.5 hover:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/25"
+                >
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-white text-xs font-black text-emerald-700">
+                    WA
+                  </span>
+                  Join WhatsApp Group
+                </a>
+              ) : null}
+            </div>
+          </div>
+        ) : (
+          <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {status.message}
+          </p>
+        )
       ) : null}
 
       <button

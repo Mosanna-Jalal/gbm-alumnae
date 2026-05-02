@@ -39,31 +39,6 @@ export default function Home() {
               <div className="rounded-lg border border-[#d8c190] bg-[#fff7df] p-3 text-[#6c4a12] sm:p-4">
                 Fields marked with * are required.
               </div>
-              {whatsappGroupLink ? (
-                <a
-                  href={whatsappGroupLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative overflow-hidden rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-left shadow-lg shadow-emerald-900/5 transition hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-100 focus:outline-none focus:ring-4 focus:ring-emerald-500/20"
-                >
-                  <span className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-emerald-600 text-sm font-black text-white shadow-md shadow-emerald-900/20">
-                    WA
-                  </span>
-                  <span className="block pr-12 text-xs font-bold uppercase tracking-[0.16em] text-emerald-800">
-                    Stay Connected
-                  </span>
-                  <span className="mt-2 block text-lg font-semibold leading-tight text-slate-950">
-                    Join WhatsApp Group
-                  </span>
-                  <span className="mt-2 block text-sm leading-6 text-emerald-900/80">
-                    Get alumni updates, college notices, and association news
-                    directly in the group.
-                  </span>
-                  <span className="mt-4 inline-flex min-h-10 items-center rounded-md bg-emerald-700 px-4 text-sm font-bold text-white transition group-hover:bg-emerald-800">
-                    Open Group Link
-                  </span>
-                </a>
-              ) : null}
             </div>
             </div>
           </aside>
@@ -77,7 +52,7 @@ export default function Home() {
                 Alumna Information
               </h2>
             </div>
-            <AlumniForm />
+            <AlumniForm whatsappGroupLink={whatsappGroupLink} />
           </section>
         </div>
       </section>
