@@ -314,6 +314,27 @@ export function AdminDashboard() {
           </div>
         </section>
       ) : null}
+
+      <footer className="border-t border-white/10 py-5 text-center text-xs leading-6 text-zinc-400 sm:py-6 sm:text-sm">
+        <span>
+          Designed &amp; Developed by{" "}
+          <a
+            href="https://me-mj.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-amber-200 underline-offset-4 transition hover:text-amber-100 hover:underline"
+          >
+            Mosaana Jalal
+          </a>{" "}
+          (MJX Web Studio).
+        </span>
+        <Link
+          href="/"
+          className="ml-2 inline-flex min-h-8 items-center rounded-md border border-white/15 bg-white/5 px-3 text-xs font-bold uppercase tracking-[0.08em] text-white transition hover:border-white/30 hover:bg-white/10 sm:ml-3"
+        >
+          Back to Form
+        </Link>
+      </footer>
     </div>
   );
 }
