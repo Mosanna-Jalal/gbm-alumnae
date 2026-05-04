@@ -272,7 +272,7 @@ export function AdminDashboard() {
                       {columns.map((column) => (
                         <td
                           key={column.key}
-                          className="max-w-[280px] border-b border-r border-white/10 px-3 py-3 align-top text-zinc-200 last:border-r-0"
+                          className={`max-w-[280px] border-b border-r border-white/10 px-3 py-3 align-top text-zinc-200 last:border-r-0${column.key === "achievements" ? " h-px" : ""}`}
                         >
                           {isPreviewColumn(column.key) &&
                           submission[column.key] ? (
@@ -292,6 +292,10 @@ export function AdminDashboard() {
                             >
                               View file
                             </a>
+                          ) : column.key === "achievements" ? (
+                            <div className="h-full overflow-y-auto whitespace-pre-wrap break-words">
+                              {submission[column.key]}
+                            </div>
                           ) : (
                             submission[column.key]
                           )}
